@@ -1,0 +1,72 @@
+---
+description: URL query parameters for page state
+globs: src/routes/**/*.tsx
+alwaysApply: false
+---
+
+# Query Parameters
+
+Persist page settings in URL query parameters for shareability and bookmarking.
+
+## Implementation Pattern
+
+```tsx
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { zodValidator } from '@tanstack/zod-adapter';
+import { z } from 'zod';
+
+// Types
+interface SearchParams {
+  bpm?: number;
+  enabled?: boolean;
+  mode?: string;
+}
+
+const searchSchema = z.object({
+  bpm: z.number().optional(),
+  enabled: z.boolean().optional(),
+  mode: z.string().optional(),
+});
+
+// Main component
+function ToolPage() {
+  const navigate = useNavigate({ from: '/tool' });
+  const search = Route.useSearch();
+
+  const updateSearch = useCallback(
+    (updates: Partial<SearchParams>) => {
+      navigate({
+        search: prev => ({ ...prev, ...updates }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  // Use search params as initial/current values
+  const value = search.bpm ?? DEFAULT_VALUE;
+
+  return <Control value={value} onChange={v => updateSearch({ bpm: v })} />;
+}
+
+// Route export with validateSearch
+export const Route = createFileRoute('/tool')({
+  component: ToolPage,
+  validateSearch: zodValidator(searchSchema),
+});
+```
+
+## Guidelines
+
+- Use `replace: true` to avoid polluting browser history
+- Use Zod schema + `zodValidator` for all `validateSearch` implementations
+- Provide defaults when params are undefined
+- Keep param names short but descriptive
+- Use appropriate types (number, boolean, string)
+
+## Benefits
+
+- Shareable URLs with settings preserved
+- Browser back/forward works naturally
+- Bookmarkable tool configurations
+- Refreshing page preserves state

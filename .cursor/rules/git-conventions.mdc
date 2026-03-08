@@ -1,0 +1,57 @@
+---
+description: Git commit and PR conventions
+alwaysApply: true
+---
+
+# Git Conventions
+
+## Commit Messages
+
+Use conventional commit format:
+
+```
+type: short description
+
+Optional longer description
+```
+
+### Types
+
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation only
+- `style` - Formatting, no code change
+- `refactor` - Code change without feature/fix
+- `chore` - Build, dependencies, config
+
+### Examples
+
+```
+feat: add metronome tool
+fix: sidebar not closing on mobile
+docs: update README with new features
+chore: update dependencies
+```
+
+## Before Committing
+
+Run checks:
+
+```bash
+pnpm typecheck   # TypeScript errors
+pnpm lint        # ESLint
+pnpm format      # Prettier
+```
+
+## Pull Requests
+
+Title: Same as commit message format
+
+Body:
+```markdown
+## Summary
+- Brief description of changes
+
+## Test plan
+- How to verify the changes work
+```

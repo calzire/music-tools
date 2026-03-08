@@ -1,0 +1,88 @@
+---
+description: File structure and code organization
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# File Organization
+
+**Sort alphabetically wherever possible** (imports within groups, interface properties, function params, object keys)
+
+Organize files following this structure:
+
+## Order
+
+1. **Imports** (grouped: react → external libs → @/components → @/hooks → @/lib)
+2. **Types**
+   - Type aliases first
+   - Internal/config interfaces
+   - Component props interfaces (alphabetized properties)
+   - `SearchParams` interface last (if applicable)
+3. **Constants** (all caps or descriptive names)
+4. **Helper functions** (pure utilities)
+5. **Subcomponents** (internal components used by main)
+6. **Main component** (the page/feature component)
+7. **Route export** (at the very end, with `validateSearch` if applicable)
+
+## Section Comments
+
+```tsx
+// Types
+// Constants
+// Helper functions
+// Subcomponents
+// Main component
+// Route export
+```
+
+## Naming
+
+- Props interfaces: `{ComponentName}Props`
+
+## Sorting Rules
+
+- **Interface properties**: alphabetized
+- **Imports**: grouped (react → external → local), alphabetized within groups
+- **Function parameters**: alphabetized (especially in props destructuring)
+- **Object keys in constants**: alphabetized where logical
+
+## Example
+
+```tsx
+// Imports
+import { useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { useMetronome } from '@/hooks/use-metronome';
+import { formatTime } from '@/lib/tempo-utils';
+
+// Types
+type Status = 'idle' | 'loading' | 'error';
+
+interface ToolConfig {
+  maxValue: number;
+  minValue: number;
+}
+
+interface MetronomeProps {
+  bpm: number;
+  onBpmChange: (bpm: number) => void;
+}
+
+// Constants
+const DEFAULT_BPM = 120;
+
+// Helper functions
+function clampBpm(value: number) { ... }
+
+// Subcomponents
+function BpmDisplay({ bpm }: { bpm: number }) { ... }
+
+// Main component
+function MetronomePage() { ... }
+
+// Route export
+export const Route = createFileRoute('/metronome')({
+  component: MetronomePage,
+});
+```

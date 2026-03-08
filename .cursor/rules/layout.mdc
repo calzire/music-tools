@@ -1,0 +1,53 @@
+---
+description: Layout components and context patterns
+globs: src/components/layout/**/*.tsx
+alwaysApply: false
+---
+
+# Layout Components
+
+## Structure
+
+```
+src/components/layout/
+  TopNav.tsx          # Top navigation bar
+  Sidebar.tsx         # Collapsible sidebar
+  SidebarContext.tsx  # Sidebar open/close state
+  ThemeContext.tsx    # Dark/light mode state
+  ThemeToggle.tsx     # Theme toggle button
+```
+
+## Sidebar Context
+
+```tsx
+import { useSidebar } from '@/components/layout/SidebarContext';
+
+const { isOpen, toggle, open, close } = useSidebar();
+```
+
+- Auto-closes on mobile, auto-opens on desktop
+- Responds to viewport width changes
+
+## Theme Context
+
+```tsx
+import { useTheme } from '@/components/layout/ThemeContext';
+
+const { theme, setTheme } = useTheme();
+setTheme('light' | 'dark' | 'system');
+```
+
+## Adding Nav Items
+
+Edit `src/lib/nav.ts`:
+
+```tsx
+export const navItems: NavGroup[] = [
+  {
+    title: 'Group Name',
+    items: [
+      { title: 'Page', href: '/page', icon: IconName },
+    ],
+  },
+];
+```

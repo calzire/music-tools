@@ -1,0 +1,41 @@
+---
+description: Project coding conventions and standards
+alwaysApply: true
+---
+
+# Project Conventions
+
+## Tech Stack
+
+- React 19, TypeScript, Vite (rolldown-vite)
+- TanStack Router (file-based routing with hash history)
+- Tailwind CSS 4, Base UI (via basecn)
+- pnpm package manager
+
+## File Structure
+
+- `src/routes/` - TanStack Router file-based routes
+- `src/components/ui/` - Base UI components (basecn)
+- `src/components/layout/` - Layout components (TopNav, Sidebar)
+- `src/hooks/` - Custom React hooks (use-\*.ts)
+- `src/lib/` - Utilities and helpers (non-hook functions)
+- `tests/` - Test files; mirrors `src/` directory structure (e.g. `tests/lib/utils/dateParser.spec.ts` for `src/lib/utils/dateParser.ts`). Keeps `src` free of test files.
+
+## Code Style
+
+- Prettier for formatting (run `pnpm format`)
+- Single quotes, trailing commas, 100 char line width
+- Type-only imports: `import { type Foo }` or `import type { Foo }`
+
+## Commands
+
+- `pnpm dev` - Start dev server
+- `pnpm build` - Build for production
+- `pnpm typecheck` - Check TypeScript errors
+- `pnpm format` - Format code with Prettier
+
+## Theme
+
+- CSS variables in `src/index.css`
+- Red primary color, neutral sidebar
+- Dark/light mode via ThemeContext

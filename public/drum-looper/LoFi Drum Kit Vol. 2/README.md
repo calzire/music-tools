@@ -1,0 +1,1 @@
+Thank you [ProdbyKrill](https://www.reddit.com/user/ProdbyKrill/) for this awesome kit! Got this from [this reddit post](https://www.reddit.com/r/Drumkits/comments/bg4f8n/lofi_drum_kit_vol_2_with_samples/)

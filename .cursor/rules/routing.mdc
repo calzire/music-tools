@@ -1,0 +1,50 @@
+---
+description: TanStack Router patterns
+globs: src/routes/**/*.tsx
+alwaysApply: false
+---
+
+# TanStack Router
+
+This project uses TanStack Router with file-based routing.
+
+## Creating Routes
+
+Routes are in `src/routes/`. The router plugin auto-generates `routeTree.gen.ts`.
+
+```tsx
+// src/routes/about.tsx → /#/about
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/about')({
+  component: AboutPage,
+});
+
+function AboutPage() {
+  return <div>About</div>;
+}
+```
+
+## Nested Routes
+
+```
+src/routes/
+  __root.tsx        # Root layout (TopNav, Sidebar)
+  index.tsx         # /#/
+  tools/
+    index.tsx       # /#/tools
+    metronome.tsx   # /#/tools/metronome
+```
+
+## Navigation
+
+```tsx
+import { Link } from '@tanstack/react-router';
+
+<Link to="/about">About</Link>
+<Link to="/tools/metronome">Metronome</Link>
+```
+
+## Hash History
+
+Using hash history for GitHub Pages compatibility. URLs are `/#/path`.

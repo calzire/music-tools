@@ -1,0 +1,35 @@
+---
+description: Base UI component patterns using basecn
+globs: src/components/**/*.tsx
+alwaysApply: false
+---
+
+# basecn Components
+
+This project uses [basecn](https://basecn.dev) - shadcn/ui components rebuilt on Base UI.
+
+## Installing Components
+
+```bash
+pnpm dlx shadcn@latest add https://basecn.dev/r/[component-name].json
+```
+
+## Available Components
+
+Reference: https://basecn.dev/llms.txt
+
+Common components: accordion, alert-dialog, alert, avatar, badge, button, card, checkbox, dialog, drawer, dropdown-menu, input, label, popover, select, separator, sheet, sidebar, skeleton, slider, switch, table, tabs, textarea, toggle, tooltip
+
+## Import Pattern
+
+```tsx
+// ✅ Use @base-ui/react imports
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+
+// ✅ Type-only imports for TypeScript
+import { cva, type VariantProps } from "class-variance-authority";
+```
+
+## Component Structure
+
+Components go in `src/components/ui/` and follow the shadcn pattern - copy, paste, customize.

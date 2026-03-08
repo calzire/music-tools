@@ -1,0 +1,55 @@
+---
+description: Theme and styling patterns
+globs: src/index.css
+alwaysApply: false
+---
+
+# Theme & Styling
+
+## CSS Variables
+
+Theme colors are defined in `src/index.css` using OKLCH color space.
+
+```css
+:root {
+  --primary: oklch(0.55 0.22 25);  /* Red */
+  --background: oklch(1 0 0);      /* White */
+}
+
+.dark {
+  --primary: oklch(0.65 0.22 25);  /* Brighter red for dark */
+  --background: oklch(0.145 0.005 15);
+}
+```
+
+## OKLCH Format
+
+`oklch(lightness chroma hue)`
+
+- **Lightness**: 0-1 (0=black, 1=white)
+- **Chroma**: 0-0.4 (0=gray, higher=more saturated)
+- **Hue**: 0-360 (25=red, 120=green, 240=blue)
+
+## Dark Mode
+
+Use ThemeContext for programmatic access:
+
+```tsx
+import { useTheme } from '@/components/layout/ThemeContext';
+
+const { theme, setTheme } = useTheme();
+// theme: 'light' | 'dark' | 'system'
+```
+
+## Tailwind Classes
+
+Use semantic color classes that respect the theme:
+
+```tsx
+// ✅ Good - uses CSS variables
+className="bg-primary text-primary-foreground"
+className="bg-sidebar text-sidebar-foreground"
+
+// ❌ Avoid - hardcoded colors
+className="bg-red-500 text-white"
+```
