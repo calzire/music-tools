@@ -1,4 +1,4 @@
-import { Drum, Gauge, Home, Timer, type LucideIcon } from 'lucide-react';
+import { Drum, Gauge, Home, Sparkles, Timer, type LucideIcon } from 'lucide-react';
 
 // Types
 export interface NavGroup {
@@ -46,6 +46,12 @@ export const navItems: NavGroup[] = [
         href: '/drum-looper',
         icon: Drum,
         title: 'Drum Looper',
+      },
+      {
+        description: 'Heavenly synth pad with chord buttons and drone',
+        href: '/worship-pad',
+        icon: Sparkles,
+        title: 'Worship Pad',
       },
     ],
   },

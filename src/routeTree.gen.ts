@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorshipPadRouteImport } from './routes/worship-pad'
 import { Route as TunerRouteImport } from './routes/tuner'
 import { Route as MetronomeRouteImport } from './routes/metronome'
 import { Route as DrumLooperRouteImport } from './routes/drum-looper'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WorshipPadRoute = WorshipPadRouteImport.update({
+  id: '/worship-pad',
+  path: '/worship-pad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TunerRoute = TunerRouteImport.update({
   id: '/tuner',
   path: '/tuner',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/drum-looper': typeof DrumLooperRoute
   '/metronome': typeof MetronomeRoute
   '/tuner': typeof TunerRoute
+  '/worship-pad': typeof WorshipPadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/drum-looper': typeof DrumLooperRoute
   '/metronome': typeof MetronomeRoute
   '/tuner': typeof TunerRoute
+  '/worship-pad': typeof WorshipPadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/drum-looper': typeof DrumLooperRoute
   '/metronome': typeof MetronomeRoute
   '/tuner': typeof TunerRoute
+  '/worship-pad': typeof WorshipPadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/drum-looper' | '/metronome' | '/tuner'
+  fullPaths: '/' | '/drum-looper' | '/metronome' | '/tuner' | '/worship-pad'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/drum-looper' | '/metronome' | '/tuner'
-  id: '__root__' | '/' | '/drum-looper' | '/metronome' | '/tuner'
+  to: '/' | '/drum-looper' | '/metronome' | '/tuner' | '/worship-pad'
+  id:
+    | '__root__'
+    | '/'
+    | '/drum-looper'
+    | '/metronome'
+    | '/tuner'
+    | '/worship-pad'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +82,18 @@ export interface RootRouteChildren {
   DrumLooperRoute: typeof DrumLooperRoute
   MetronomeRoute: typeof MetronomeRoute
   TunerRoute: typeof TunerRoute
+  WorshipPadRoute: typeof WorshipPadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/worship-pad': {
+      id: '/worship-pad'
+      path: '/worship-pad'
+      fullPath: '/worship-pad'
+      preLoaderRoute: typeof WorshipPadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tuner': {
       id: '/tuner'
       path: '/tuner'
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   DrumLooperRoute: DrumLooperRoute,
   MetronomeRoute: MetronomeRoute,
   TunerRoute: TunerRoute,
+  WorshipPadRoute: WorshipPadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

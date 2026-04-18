@@ -7,6 +7,7 @@ A collection of browser-based music utilities.
 - **Metronome** - Practice with adjustable tempo, time signatures, tap tempo, speed trainer, and timer
 - **Tuner** - Tune instruments with microphone input using browser-only pitch detection (inspired by [qiuxiang/tuner](https://github.com/qiuxiang/tuner))
 - **Drum Looper** - Create section-based drum sequences, load kits from `public/drum-looper`, and share projects via URL
+- **Worship Pad** - Ambient synth pad with diatonic chord buttons, drone, swell/duck, and reverb
 
 ## Tech Stack
 

@@ -25,3 +25,4 @@ dist-ssr
 
 tmp/*
 .tmp/*
+.claude/plans
