@@ -1,9 +1,3 @@
----
-description: File structure and code organization
-globs: "**/*.{ts,tsx}"
-alwaysApply: false
----
-
 # File Organization
 
 **Sort alphabetically wherever possible** (imports within groups, interface properties, function params, object keys)

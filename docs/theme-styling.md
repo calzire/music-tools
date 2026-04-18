@@ -1,9 +1,3 @@
----
-description: Theme and styling patterns
-globs: src/index.css
-alwaysApply: false
----
-
 # Theme & Styling
 
 ## CSS Variables

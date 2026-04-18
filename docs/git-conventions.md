@@ -1,8 +1,3 @@
----
-description: Git commit and PR conventions
-alwaysApply: true
----
-
 # Git Conventions
 
 ## Commit Messages
