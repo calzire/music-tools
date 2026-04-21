@@ -55,8 +55,8 @@ const PRESETS: Record<SynthPreset, PresetConfig> = {
   pad: {
     synthClass: 'Synth',
     oscillatorType: 'fatsawtooth',
-    oscillatorCount: 5,
-    oscillatorSpread: 40,
+    oscillatorCount: 3,
+    oscillatorSpread: 25,
     lowpassHz: 2200,
     autoFilterOctaves: 3,
     autoFilterWet: 0.6,
@@ -115,10 +115,17 @@ interface UseWorshipPadReturn {
   retuneDrone: (rootPc: number, octave: number) => void;
   setDrone: (on: boolean, rootPc: number, octave: number) => void;
   setDucked: (on: boolean) => void;
+  setShimmerFeedback: (on: boolean) => void;
   toggleLatch: () => void;
 }
 
 // Constants
+// Tone's PolySynth drops notes (does not steal voices) when maxPolyphony is
+// reached, so these must cover the attack+release overlap of several rapid
+// chord presses. ~4 notes/chord × ~4 overlapping presses = 16 for the pad.
+const PAD_MAX_POLYPHONY = 16;
+const SHIMMER_MAX_POLYPHONY = 12;
+const DRONE_MAX_POLYPHONY = 4;
 const DUCK_DB = -18;
 const DUCK_RAMP_SECONDS = 0.4;
 const VOLUME_RAMP_SECONDS = 0.1;
@@ -145,7 +152,7 @@ function createPadSynth(
     release,
   };
   if (preset.synthClass === 'Synth') {
-    return new Tone.PolySynth(Tone.Synth, {
+    const synth = new Tone.PolySynth(Tone.Synth, {
       oscillator: {
         type: preset.oscillatorType,
         count: preset.oscillatorCount,
@@ -153,6 +160,8 @@ function createPadSynth(
       },
       envelope,
     });
+    synth.maxPolyphony = PAD_MAX_POLYPHONY;
+    return synth;
   }
   const modulationEnvelope: EnvelopeShape = preset.modulationEnvelope ?? {
     attack: Math.max(attack * 0.5, 0.5),
@@ -160,7 +169,7 @@ function createPadSynth(
     sustain: 0.3,
     release,
   };
-  return new Tone.PolySynth(Tone.FMSynth, {
+  const synth = new Tone.PolySynth(Tone.FMSynth, {
     harmonicity: preset.harmonicity,
     modulationIndex: preset.modulationIndex,
     oscillator: { type: preset.carrierType },
@@ -168,6 +177,8 @@ function createPadSynth(
     envelope,
     modulationEnvelope,
   });
+  synth.maxPolyphony = PAD_MAX_POLYPHONY;
+  return synth;
 }
 
 function applyPresetParams(synth: Tone.PolySynth, preset: PresetConfig): void {
@@ -224,7 +235,10 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
   const padLowpassRef = useRef<Tone.Filter | null>(null);
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const shimmerFeedbackGainRef = useRef<Tone.Gain | null>(null);
+  const shimmerPitchShiftRef = useRef<Tone.PitchShift | null>(null);
+  const shimmerFeedbackConnectedRef = useRef(false);
   const volumeRef = useRef<Tone.Volume | null>(null);
+  const limiterRef = useRef<Tone.Limiter | null>(null);
 
   const currentNotesRef = useRef<number[]>([]);
   const currentShimmerNotesRef = useRef<number[]>([]);
@@ -266,11 +280,14 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
       wet: initialPreset.autoFilterWet,
     }).start();
     const reverb = new Tone.Reverb({
-      decay: 8,
+      decay: 4,
       preDelay: 0.05,
       wet: settings.reverbWet,
     });
     const volume = new Tone.Volume(Tone.gainToDb(settings.volume));
+    // Brick-wall limiter catches voice-stacking peaks before the destination
+    // would hard-clip them into audible distortion on rapid chord presses.
+    const limiter = new Tone.Limiter(-1);
 
     const synth = createPadSynth(initialPreset, settings.attack, settings.release);
     // Drone stays on triangle for a warm, pure sub-bass foundation under the evolving saw pad.
@@ -278,10 +295,12 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
       oscillator: { type: 'fattriangle', count: 3, spread: 20 },
       envelope: droneEnvelope(settings),
     });
+    drone.maxPolyphony = DRONE_MAX_POLYPHONY;
     const shimmer = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'sine' },
       envelope: shimmerEnvelope(settings),
     });
+    shimmer.maxPolyphony = SHIMMER_MAX_POLYPHONY;
 
     const droneVolume = new Tone.Volume(DRONE_BASELINE_DB);
     const shimmerVolume = new Tone.Volume(SHIMMER_VOICE_DB);
@@ -291,12 +310,13 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
     const shimmerFeedbackDelay = new Tone.Delay(SHIMMER_REVERB_DELAY_SECONDS);
     const shimmerFeedbackGain = new Tone.Gain(settings.shimmerReverbAmount);
 
-    // Master chain: chorus → padLowpass → autoFilter → reverb → volume → destination
+    // Master chain: chorus → padLowpass → autoFilter → reverb → volume → limiter → destination
     chorus.connect(padLowpass);
     padLowpass.connect(filter);
     filter.connect(reverb);
     reverb.connect(volume);
-    volume.toDestination();
+    volume.connect(limiter);
+    limiter.toDestination();
 
     // Sources
     synth.connect(chorus);
@@ -306,8 +326,9 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
     shimmer.connect(shimmerVolume);
     shimmerVolume.connect(reverb);
 
-    // Shimmer reverb feedback loop: reverb → pitchShift → delay → gain → reverb
-    reverb.connect(shimmerPitchShift);
+    // Shimmer reverb feedback loop: reverb → pitchShift → delay → gain → reverb.
+    // The reverb → pitchShift edge is gated by setShimmerFeedback so the granular
+    // PitchShift isn't processing audio when shimmer is off.
     shimmerPitchShift.connect(shimmerFeedbackDelay);
     shimmerFeedbackDelay.connect(shimmerFeedbackGain);
     shimmerFeedbackGain.connect(reverb);
@@ -321,7 +342,9 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
     padLowpassRef.current = padLowpass;
     reverbRef.current = reverb;
     shimmerFeedbackGainRef.current = shimmerFeedbackGain;
+    shimmerPitchShiftRef.current = shimmerPitchShift;
     volumeRef.current = volume;
+    limiterRef.current = limiter;
 
     return () => {
       // Cancel and dispose any pending preset-crossfade synths.
@@ -348,6 +371,7 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
       shimmerFeedbackDelay.dispose();
       shimmerFeedbackGain.dispose();
       volume.dispose();
+      limiter.dispose();
       synthRef.current = null;
       droneSynthRef.current = null;
       droneVolumeRef.current = null;
@@ -357,7 +381,10 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
       padLowpassRef.current = null;
       reverbRef.current = null;
       shimmerFeedbackGainRef.current = null;
+      shimmerPitchShiftRef.current = null;
+      shimmerFeedbackConnectedRef.current = false;
       volumeRef.current = null;
+      limiterRef.current = null;
       currentNotesRef.current = [];
       currentShimmerNotesRef.current = [];
       droneNotesRef.current = [];
@@ -456,6 +483,19 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
   useEffect(() => {
     reverbRef.current?.wet.rampTo(settings.reverbWet, REVERB_RAMP_SECONDS);
   }, [settings.reverbWet]);
+
+  const setShimmerFeedback = useCallback((on: boolean) => {
+    const pitchShift = shimmerPitchShiftRef.current;
+    const reverb = reverbRef.current;
+    if (!pitchShift || !reverb) return;
+    if (shimmerFeedbackConnectedRef.current === on) return;
+    if (on) {
+      reverb.connect(pitchShift);
+    } else {
+      reverb.disconnect(pitchShift);
+    }
+    shimmerFeedbackConnectedRef.current = on;
+  }, []);
 
   const setDucked = useCallback((on: boolean) => {
     if (!volumeRef.current) return;
@@ -677,6 +717,7 @@ export function useWorshipPad({ settings }: UseWorshipPadOptions): UseWorshipPad
     retuneDrone,
     setDrone,
     setDucked,
+    setShimmerFeedback,
     toggleLatch,
   };
 }

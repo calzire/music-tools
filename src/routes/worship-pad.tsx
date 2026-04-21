@@ -72,7 +72,7 @@ const DEFAULT_OCTAVE = 4;
 const DEFAULT_VOLUME = 0.5;
 const DEFAULT_REVERB = 0.9;
 const DEFAULT_ATTACK = 2;
-const DEFAULT_RELEASE = 3;
+const DEFAULT_RELEASE = 2;
 const DEFAULT_SUB_ROOT = true;
 const DEFAULT_DRONE = false;
 const DEFAULT_SHIMMER = false;
@@ -110,10 +110,7 @@ function ChordButton({ active, chord, onPress }: ChordButtonProps) {
   return (
     <button
       type="button"
-      onPointerDown={event => {
-        event.currentTarget.setPointerCapture(event.pointerId);
-        onPress();
-      }}
+      onPointerDown={() => onPress()}
       className={cn(
         'group flex flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-5 shadow-sm transition-all select-none',
         'touch-none active:scale-[0.97]',
@@ -384,7 +381,7 @@ function WorshipPadPage() {
     activeChordRef.current = pad.activeChord;
   }, [pad.activeChord]);
 
-  const { refreshVoicing, retuneDrone, setDrone } = pad;
+  const { refreshVoicing, retuneDrone, setDrone, setShimmerFeedback } = pad;
   useEffect(() => {
     const active = activeChordRef.current;
     if (!active) return;
@@ -401,6 +398,12 @@ function WorshipPadPage() {
   useEffect(() => {
     setDrone(drone, tonic.rootPc, droneOctave);
   }, [drone, droneOctave, setDrone, tonic.rootPc]);
+
+  // Gate the pitch-shifted reverb feedback loop on the URL-driven shimmer flag
+  // so the PitchShift isn't processing audio when shimmer is off.
+  useEffect(() => {
+    setShimmerFeedback(shimmer);
+  }, [setShimmerFeedback, shimmer]);
 
   // Global pointerup so dragging off a chord button still releases it
   useEffect(() => {
